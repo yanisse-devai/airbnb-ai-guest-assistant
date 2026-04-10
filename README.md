@@ -190,6 +190,6 @@ Simple Memory a été ajoutée puis supprimée : les emails Airbnb n'ont pas de 
 ---
 
 ## 🤝 Contact
-Portfolio : [github.com/yanisse-kemel] | LinkedIn : [linkedin.com/in/yanisse-kemel] | ✉️ yanisse@exemple.fr
+Portfolio : [github.com/yanisse-devai] | LinkedIn : [linkedin.com/in/yanisse-kemel] | ✉️ yanissekemel@gmail.com
 
 *Projet personnel — usage privé.*
