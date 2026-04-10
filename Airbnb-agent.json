@@ -1,0 +1,397 @@
+{
+  "name": "Airbnb-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "filters": {
+          "custom": "contains(subject, 'Demande pour')",
+          "foldersToInclude": [
+            "AQMkADAwATZiZmYAZC1hZDNlLTk5AGQ0LTAwAi0wMAoALgAAAxQX_CIfHCtLi2swE62ca7wBAOX2-xB0coJCpDTJ0p3wjjsACHudSNwAAAA="
+          ],
+          "readStatus": "unread",
+          "sender": "automated@airbnb.com"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlookTrigger",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -64
+      ],
+      "id": "d7e516b4-2153-4d30-bc52-cc3fea4860d9",
+      "name": "Microsoft Outlook Trigger",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "DFLSwiA4QClqJnPZ",
+          "name": "perso"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7a2e7c84-9fa8-4dba-bfeb-d63d5ead2634",
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "Réservation pour",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "8970ec6d-0a12-435e-a72f-7608450366f0",
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "Demande pour",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -128,
+        -64
+      ],
+      "id": "4cb20159-687f-441e-befd-4264eb64f35b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Microsoft Outlook Trigger').item.json.bodyPreview }}",
+        "options": {
+          "systemMessage": "Tu es l'assistant de Yanisse, propriétaire d'un appartement Airbnb à Saint-denis.\n\n# TON PÉRIMÈTRE STRICT\nTu es autorisé à répondre UNIQUEMENT aux questions portant sur :\n- Les transports et trajets (métro, bus, RER, durées)\n- Le Stade de France et autres lieux touristiques\n- Les restaurants, commerces et adresses à proximité\n- Les informations pratiques du logement (équipements, règles,\n  check-in, check-out, lits, wifi, etc.)\n\nToute autre question (problème technique, négociation de prix, demande de remboursement, plainte, question personnelle, etc.) est hors périmètre.\n\n# RÈGLE DE DÉCISION — SUIS CET ORDRE OBLIGATOIREMENT\n\nÉTAPE 1 — Analyse le message reçu.\nEst-ce que la question entre dans mon périmètre défini ci-dessus ?\n\n→ Si NON : réponds uniquement ce texte exact, sans rien ajouter :\n\"HORS_PERIMETRE\"\n\n→ Si OUI : passe à l'étape 2.\n\nÉTAPE 2 — Consulte le Google Docs du logement EN PREMIER.\nSi la réponse s'y trouve : réponds directement, sans chercher ailleurs.\nN'utilise JAMAIS Perplexity si l'information est dans le document.\n\nÉTAPE 3 — Si et seulement si l'information est introuvable dans\nle document : utilise Perplexity pour faire une recherche web.\nPrécise alors que l'info vient d'une recherche en ligne.\n\n# FORMAT DE RÉPONSE\n- Ton chaleureux et naturel, tutoie le voyageur\n- Réponse courte et directe\n- Si tu utilises Perplexity, termine par :\n  \"Je te conseille de vérifier cette info avant de partir !\"\n- Réponds dans la même langue que le voyageur\n\n# AVANT D'ENVOYER — VÉRIFIE CES 3 POINTS\n\n1. Est-ce que j'ai bien classifié ce message \n   (périmètre ou hors périmètre) ?\n2. Est-ce que ma réponse est basée uniquement sur \n   le Google Docs ou Perplexity, sans rien inventer ?\n3. Est-ce que j'envoie à la bonne adresse \n   et avec le bon objet ?\n\nSi la réponse à l'un de ces points est non ou incertaine :\nn'envoie pas et indique \"VERIFICATION_REQUISE\" en sortie."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        -64
+      ],
+      "id": "fed275ff-6e30-45a1-a457-bf412553ca51",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "messages": {
+          "message": [
+            {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message0_Text', ``, 'string') }}"
+            }
+          ]
+        },
+        "simplify": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify_Output', ``, 'boolean') }}",
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.perplexityTool",
+      "typeVersion": 1,
+      "position": [
+        448,
+        272
+      ],
+      "id": "bc1b0b14-68a5-429e-ba75-18f61813eaea",
+      "name": "Message a model in Perplexity",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        320,
+        160
+      ],
+      "id": "49573218-765f-4ed8-a0bc-e6085d40072f",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "2XqKKMr7LpxugAVQ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "1Tom4nGVGF1krQI4wLy-npRTdTqpQA7ACKIbAzw_coJk"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        576,
+        160
+      ],
+      "id": "e398b072-2d4a-4721-8340-f0528582563c",
+      "name": "Informations logement",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "SNMmM0tD2ScuCB2m",
+          "name": "Google Docs OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Utilise cet outil pour envoyer des emails UNIQUEMENT dans\nces deux cas précis :\n\nCAS 1 — Tu as une réponse à donner au voyageur :\n- Envoie à [TON EMAIL]\n- Objet : \"Réponse prête — \" + résumé en 5 mots\n- Corps : ta réponse au voyageur\n\nCAS 2 — La question est hors de ton périmètre :\n- Envoie à [TON EMAIL]\n- Objet : \"À traiter manuellement — \" + résumé\n- Corps : \"Message reçu : [message du voyageur]\"\n\nN'envoie JAMAIS qu'un seul email par message reçu.\nN'envoie JAMAIS dans un autre cas.",
+        "toRecipients": "={{ $json.sender.emailAddress.address }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "bodyContent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlookTool",
+      "typeVersion": 2,
+      "position": [
+        704,
+        160
+      ],
+      "id": "80c1606b-9a52-4046-b3b6-6d0ccedfac98",
+      "name": "Answer",
+      "webhookId": "12e146d7-be10-465a-9cf0-944e896525c1",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "DFLSwiA4QClqJnPZ",
+          "name": "perso"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "messageId": {
+          "__rl": true,
+          "value": "={{ $('Microsoft Outlook Trigger').item.json.id }}",
+          "mode": "id"
+        },
+        "updateFields": {
+          "isRead": true
+        }
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -64
+      ],
+      "id": "1a17f2bf-addb-4569-a90b-b89ce129c873",
+      "name": "Update status reading message",
+      "webhookId": "b244ef16-06b7-472c-84b3-826239a54733",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "DFLSwiA4QClqJnPZ",
+          "name": "perso"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "47d54004-b72c-48ff-a2f0-ff3a357b105a",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "HORS_PERIMETRE",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        -64
+      ],
+      "id": "af193904-8627-4df8-89e1-d2f619cd60f5",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "toRecipients": "yanissekemel@gmail.com",
+        "subject": "=Agent IA Yanisse -  {{ $json.output }}",
+        "bodyContent": "=Bonjour Yanisse,\n\nJe ne peux pas répondre au mail suivant :\n {{ $('Microsoft Outlook Trigger').item.json.subject }}, la date du mail : {{ $('Update status reading message').item.json.receivedDateTime}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        -64
+      ],
+      "id": "92925367-ef13-471c-9469-175eade740f7",
+      "name": "Send a message - OutScope for IA",
+      "webhookId": "7bd2e4a6-7073-4e5b-82bf-6ef50046bad5",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "DFLSwiA4QClqJnPZ",
+          "name": "perso"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Amélioration\n1. Prendre en déclencheur ( reservation pour et demande pour\n2. Approuval de l'envoi de message par l'humain\n3. Répondre au mail, là ca envoi à l'adresse.",
+        "height": 240,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        832,
+        112
+      ],
+      "id": "5a51ad3c-eb9c-4205-af65-f78a2f45fc2d",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Microsoft Outlook Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update status reading message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model in Perplexity": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Informations logement": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update status reading message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a message - OutScope for IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3651ce2a-784a-4b77-a287-783a5abc6908",
+  "meta": {
+    "instanceId": "7f686366d9c4410c2328486460924cfed2add83f5011fb6f633952ceacde5fda"
+  },
+  "id": "uhVUNzd3sQ5BNAE4",
+  "tags": []
+}
